@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angry Circle Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 90vw;
+            max-width: 1200px;
+            height: 85vh;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+            border: 5px solid #ff6b6b;
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            cursor: none;
+            position: relative;
+        }
+
+        #circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: url('istaher.jpeg') no-repeat center/cover;
+            position: absolute;
+            cursor: pointer;
+        }
+
+        #header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #ff6b6b;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        #triesLeft {
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        #score {
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        #sandalCursor {
+            position: fixed;
+            width: 80px;
+            height: 80px;
+            pointer-events: none;
+            z-index: 1000;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            transition: transform 0.1s ease;
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
+        }
+
+        #sandalCursor.slapping {
+            animation: slapRotate 0.3s ease-out;
+        }
+
+        @keyframes slapRotate {
+            0% { transform: translate(-50%, -50%) rotate(-45deg) scale(1); }
+            50% { transform: translate(-50%, -50%) rotate(45deg) scale(1.3); }
+            100% { transform: translate(-50%, -50%) rotate(-45deg) scale(1); }
+        }
+
+        .target {
+            position: absolute;
+            border-radius: 50%;
+            border: 6px solid #feca57;
+            box-shadow: 0 0 30px rgba(254, 202, 87, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.3);
+            cursor: none;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            transition: none;
+        }
+
+        .target img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+        }
+
+        .slap-impact {
+            position: absolute;
+            font-size: 120px;
+            pointer-events: none;
+            animation: impactAnim 0.5s ease-out forwards;
+            z-index: 50;
+            filter: drop-shadow(4px 4px 8px rgba(0, 0, 0, 0.5));
+        }
+
+        @keyframes impactAnim {
+            0% {
+                transform: scale(0) rotate(-45deg);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.2) rotate(15deg);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5) rotate(45deg);
+                opacity: 0;
+            }
+        }
+
+        .hit-text {
+            position: absolute;
+            color: #ff6b6b;
+            font-size: 48px;
+            font-weight: bold;
+            pointer-events: none;
+            animation: hitTextAnim 0.8s ease-out forwards;
+            z-index: 60;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes hitTextAnim {
+            0% {
+                transform: translateY(0) scale(0);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #ff6b6b, #feca57);
+            color: white;
+            padding: 50px;
+            border-radius: 30px;
+            text-align: center;
+            display: none;
+            z-index: 100;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border: 5px solid white;
+        }
+
+        #gameOver h2 {
+            font-size: 56px;
+            margin-bottom: 20px;
+            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        #gameOver p {
+            font-size: 32px;
+            margin-bottom: 30px;
+        }
+
+        #restartBtn {
+            background: white;
+            color: #ff6b6b;
+            border: none;
+            padding: 20px 50px;
+            font-size: 28px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        #restartBtn:hover {
+            transform: scale(1.1);
+            background: #feca57;
+            color: white;
+        }
+
+        .particles {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: explodeParticle 0.8s ease-out forwards;
+        }
+
+        @keyframes explodeParticle {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--tx), var(--ty)) scale(0);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="header">
+            <div id="triesLeft">🩴 Tries: 10</div>
+            <div id="score">💯 Score: 0</div>
+        </div>
+        <div id="gameCanvas">
+            <div id="circle"></div>
+        </div>
+        <div id="gameOver">
+            <h2 id="gameOverTitle">Game Over!</h2>
+            <p id="finalScore">Final Score: 0</p>
+            <p id="gameOverEmoji">😅</p>
+            <p class="win-message" id="winMessage" style="display: none;">istaher cdi forever</p>
+            <button id="restartBtn">Play Again! 🩴</button>
+        </div>
+    </div>
+
+    <div id="sandalCursor">
+        <svg width="80" height="80" viewBox="0 0 100 100">
+            <ellipse cx="50" cy="60" rx="35" ry="20" fill="#8B4513" opacity="0.3"/>
+            <ellipse cx="50" cy="50" rx="40" ry="22" fill="#D2691E"/>
+            <ellipse cx="50" cy="48" rx="38" ry="20" fill="#CD853F"/>
+            <path d="M 30 45 Q 50 35 70 45" stroke="#8B4513" stroke-width="3" fill="none"/>
+            <path d="M 32 50 Q 50 42 68 50" stroke="#8B4513" stroke-width="2" fill="none"/>
+            <ellipse cx="50" cy="30" rx="15" ry="8" fill="#D2691E"/>
+            <path d="M 35 30 Q 50 20 65 30" stroke="#8B4513" stroke-width="2" fill="none"/>
+        </svg>
+    </div>
+
+    <script>
+        const gameCanvas = document.getElementById('gameCanvas');
+        const scoreDisplay = document.getElementById('score');
+        const triesDisplay = document.getElementById('triesLeft');
+        const gameOverScreen = document.getElementById('gameOver');
+        const gameOverTitle = document.getElementById('gameOverTitle');
+        const finalScoreDisplay = document.getElementById('finalScore');
+        const gameOverEmoji = document.getElementById('gameOverEmoji');
+        const restartBtn = document.getElementById('restartBtn');
+        const sandalCursor = document.getElementById('sandalCursor');
+        const winMessage = document.getElementById('winMessage');
+
+        let score = 0;
+        let triesLeft = 10;
+        let gameActive = false;
+        let currentTarget = null;
+        let targetMovementInterval = null;
+
+        const hitMessages = ['Istaher cdi'];
+        const gameOverMessages = {
+            perfect: { title: 'CHAPPAL MASTER! Istaher cdi forever 👑', emoji: '🔥', message: 'Perfect Score!' },
+            good: { title: 'Sandal Warrior! 🩴 Istaher cdi forever', emoji: '😎', message: 'Nice Slapping! Istaher cdi forever' },
+            okay: { title: 'Not Bad! 🤔 Istaher cdi forever', emoji: '😅', message: 'Keep Practicing!' },
+            poor: { title: 'Better Luck Next Time! 😂 Istaher cdi forever', emoji: '🙈', message: 'Those Reflexes Though...' }
+        };
+        const targetImages = [
+            'istaher.jpeg',
+        ];
+
+        // Custom cursor follow
+        document.addEventListener('mousemove', (e) => {
+            sandalCursor.style.left = e.clientX + 'px';
+            sandalCursor.style.top = e.clientY + 'px';
+        });
+
+        function moveTarget() {
+            if (!currentTarget || !gameActive) return;
+
+            const headerHeight = 80;
+            const size = parseInt(currentTarget.style.width);
+            const maxX = gameCanvas.offsetWidth - size;
+            const maxY = gameCanvas.offsetHeight - size - headerHeight;
+            
+            const newX = Math.random() * maxX;
+            const newY = Math.random() * maxY + headerHeight;
+            
+            const duration = 500 + Math.random() * 400;
+            
+            currentTarget.style.transition = `all ${duration}ms ease-in-out`;
+            currentTarget.style.left = newX + 'px';
+            currentTarget.style.top = newY + 'px';
+        }
+
+        function createTarget() {
+            if (!gameActive) return;
+
+            const target = document.createElement('div');
+            target.className = 'target';
+            
+            const size = 120 + Math.random() * 60;
+            target.style.width = size + 'px';
+            target.style.height = size + 'px';
+            
+            const headerHeight = 80;
+            const maxX = gameCanvas.offsetWidth - size;
+            const maxY = gameCanvas.offsetHeight - size - headerHeight;
+            target.style.left = Math.random() * maxX + 'px';
+            target.style.top = (Math.random() * maxY + headerHeight) + 'px';
+            
+            const img = document.createElement('img');
+            const randomImage = targetImages[Math.floor(Math.random() * targetImages.length)];
+            img.src = randomImage;
+            target.appendChild(img);
+            
+            target.addEventListener('click', function(e) {
+                e.stopPropagation();
+                slapTarget(target, e.clientX, e.clientY);
+            });
+            
+            gameCanvas.appendChild(target);
+            currentTarget = target;
+            
+            // Start moving
+            targetMovementInterval = setInterval(moveTarget, 600);
+        }
+
+        function slapTarget(target, x, y) {
+            if (!gameActive) return;
+
+            sandalCursor.classList.add('slapping');
+            setTimeout(() => sandalCursor.classList.remove('slapping'), 300);
+
+            score += 10;
+            scoreDisplay.textContent = '💯 Score: ' + score;
+            
+            // Sandal impact effect
+            const impact = document.createElement('div');
+            impact.className = 'slap-impact';
+            impact.innerHTML = '🩴';
+            impact.style.left = (x - 60) + 'px';
+            impact.style.top = (y - 60) + 'px';
+            document.body.appendChild(impact);
+            setTimeout(() => impact.remove(), 500);
+            
+            
+            const hitText = document.createElement('div');
+            hitText.className = 'hit-text';
+            hitText.textContent = hitMessages[Math.floor(Math.random() * hitMessages.length)];
+            hitText.style.left = x + 'px';
+            hitText.style.top = y + 'px';
+            document.body.appendChild(hitText);
+            setTimeout(() => hitText.remove(), 800);
+            
+            
+            const colors = ['#ff6b6b', '#feca57', '#48dbfb', '#ff9ff3'];
+            for (let i = 0; i < 12; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particles';
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                
+                const angle = (Math.PI * 2 * i) / 12;
+                const distance = 100 + Math.random() * 50;
+                particle.style.setProperty('--tx', Math.cos(angle) * distance + 'px');
+                particle.style.setProperty('--ty', Math.sin(angle) * distance + 'px');
+                
+                document.body.appendChild(particle);
+                setTimeout(() => particle.remove(), 800);
+            }
+            
+            clearInterval(targetMovementInterval);
+            target.remove();
+            currentTarget = null;
+            
+            setTimeout(() => {
+                if (gameActive) {
+                    createTarget();
+                }
+            }, 500);
+        }
+
+        gameCanvas.addEventListener('click', function(e) {
+            if (e.target === gameCanvas && gameActive) {
+                sandalCursor.classList.add('slapping');
+                setTimeout(() => sandalCursor.classList.remove('slapping'), 300);
+                
+                triesLeft--;
+                triesDisplay.textContent = '🩴 Tries: ' + triesLeft;
+                
+                const miss = document.createElement('div');
+                miss.className = 'hit-text';
+                miss.textContent = 'MISS!';
+                miss.style.color = '#888';
+                miss.style.left = e.clientX + 'px';
+                miss.style.top = e.clientY + 'px';
+                document.body.appendChild(miss);
+                setTimeout(() => miss.remove(), 800);
+                
+                if (triesLeft <= 0) {
+                    endGame();
+                }
+            }
+        });
+
+        function startGame() {
+            score = 0;
+            triesLeft = 3;
+            gameActive = true;
+            
+            scoreDisplay.textContent = '💯 Score: 0';
+            triesDisplay.textContent = '🩴 Tries: 3';
+            gameOverScreen.style.display = 'none';
+            winMessage.style.display = 'none';
+            
+            if (currentTarget) {
+                clearInterval(targetMovementInterval);
+                currentTarget.remove();
+                currentTarget = null;
+            }
+            
+            createTarget();
+        }
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(targetMovementInterval);
+            
+            if (currentTarget) {
+                currentTarget.remove();
+                currentTarget = null;
+            }
+            
+            let result;
+            if (score === 100) {
+                result = gameOverMessages.perfect;
+                winMessage.style.display = 'block';
+
+            } else if (score >= 70) result = gameOverMessages.good;
+            else if (score >= 40) result = gameOverMessages.okay;
+            else result = gameOverMessages.poor;
+            
+            gameOverTitle.textContent = result.title;
+            gameOverEmoji.textContent = result.emoji;
+            finalScoreDisplay.textContent = `${result.message} Score: ${score}/100`;
+            gameOverScreen.style.display = 'block';
+        }
+
+        restartBtn.addEventListener('click', startGame);
+
+        startGame();
+    </script>
+</body>
+</html>
