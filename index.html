@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Angry Circle Game</title>
+    <title>SLAPY SLAP</title>
     <style>
         * {
             margin: 0;
@@ -243,7 +243,7 @@
             <h2 id="gameOverTitle">Game Over!</h2>
             <p id="finalScore">Final Score: 0</p>
             <p id="gameOverEmoji">😅</p>
-            <p class="win-message" id="winMessage" style="display: none;">istaher cdi forever</p>
+            <p class="win-message" id="winMessage" style="display: none;">See you soon</p>
             <button id="restartBtn">Play Again! 🩴</button>
         </div>
     </div>
@@ -278,16 +278,16 @@
         let currentTarget = null;
         let targetMovementInterval = null;
 
-        const hitMessages = ['Istaher cdi'];
+        const hitMessages = ['AHHHH'];
         const gameOverMessages = {
-            perfect: { title: 'CHAPPAL MASTER! Istaher cdi forever 👑', emoji: '🔥', message: 'Perfect Score!' },
-            good: { title: 'Sandal Warrior! 🩴 Istaher cdi forever', emoji: '😎', message: 'Nice Slapping! Istaher cdi forever' },
-            okay: { title: 'Not Bad! 🤔 Istaher cdi forever', emoji: '😅', message: 'Keep Practicing!' },
-            poor: { title: 'Better Luck Next Time! 😂 Istaher cdi forever', emoji: '🙈', message: 'Those Reflexes Though...' }
+            perfect: { title: 'CHAPPAL MASTER!👑', emoji: '🔥', message: 'Perfect Score!' },
+            good: { title: 'Sandal Warrior! 🩴', emoji: '😎', message: 'Nice Slapping!' },
+            okay: { title: 'Not Bad! 🤔', emoji: '😅', message: 'Keep Practicing!' },
+            poor: { title: 'Better Luck Next Time! 😂', emoji: '🙈', message: 'Those Reflexes Though...' }
         };
-        const targetImages = [
-            'istaher.jpeg',
-        ];
+        // const targetImages = [
+        //     'istaher.jpeg',
+        // ];
 
         // Custom cursor follow
         document.addEventListener('mousemove', (e) => {
